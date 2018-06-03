@@ -1,5 +1,6 @@
 package com.example.xyzreader.ui;
 
+import android.annotation.TargetApi;
 import android.app.Fragment;
 import android.app.FragmentManager;
 import android.app.LoaderManager;
@@ -89,14 +90,12 @@ public class ArticleDetailActivity extends AppCompatActivity
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
             mUpButtonContainer.setOnApplyWindowInsetsListener(new View.OnApplyWindowInsetsListener() {
                 @Override
+                @TargetApi(Build.VERSION_CODES.LOLLIPOP)
                 public WindowInsets onApplyWindowInsets(View view, WindowInsets windowInsets) {
-                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-                        view.onApplyWindowInsets(windowInsets);
-                        mTopInset = windowInsets.getSystemWindowInsetTop();
-                        mUpButtonContainer.setTranslationY(mTopInset);
-                        updateUpButtonPosition();
-                    }
-
+                    view.onApplyWindowInsets(windowInsets);
+                    mTopInset = windowInsets.getSystemWindowInsetTop();
+                    mUpButtonContainer.setTranslationY(mTopInset);
+                    updateUpButtonPosition();
                     return windowInsets;
                 }
             });
