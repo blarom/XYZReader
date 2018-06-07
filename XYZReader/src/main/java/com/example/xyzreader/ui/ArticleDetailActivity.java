@@ -11,7 +11,9 @@ import android.os.Build;
 import android.os.Bundle;
 import android.support.v13.app.FragmentStatePagerAdapter;
 import android.support.v4.view.ViewPager;
+import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
+import android.support.v7.widget.Toolbar;
 import android.util.TypedValue;
 import android.view.View;
 import android.view.ViewGroup;
@@ -56,6 +58,7 @@ public class ArticleDetailActivity extends AppCompatActivity
         mUpButtonContainer = findViewById(R.id.up_container);
         mPager = findViewById(R.id.pager);
         mUpButton = findViewById(R.id.action_up);
+        setupToolbarProperties();
         if (savedInstanceState == null) {
             if (getIntent() != null && getIntent().getData() != null) {
                 mStartId = ItemsContract.Items.getItemId(getIntent().getData());
@@ -121,7 +124,16 @@ public class ArticleDetailActivity extends AppCompatActivity
         int upButtonNormalBottom = mTopInset + mUpButton.getHeight();
         mUpButton.setTranslationY(Math.min(mSelectedItemUpButtonFloor - upButtonNormalBottom, 0));
     }
+    private void setupToolbarProperties() {
+        Toolbar toolbar = findViewById(R.id.toolbar);
+        setSupportActionBar(toolbar);
+        ActionBar actionBar = getSupportActionBar();
+        if (actionBar!=null) {
+            actionBar.setDisplayHomeAsUpEnabled(true); //Shows back button
+            actionBar.setTitle(R.string.article);
+        }
 
+    }
     //Loader methods
     @Override public Loader<Cursor> onCreateLoader(int i, Bundle bundle) {
         return ArticleLoader.newAllArticlesInstance(this);

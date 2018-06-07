@@ -2,4 +2,14 @@
     <declare-styleable name="DrawInsetsFrameLayout">
         <attr name="insetBackground" format="color|reference" />
     </declare-styleable>
+    <declare-styleable name="Theme">
+        <!--<attr name="colorPrimary" format="color|reference" />-->
+        <!--<attr name="colorPrimaryDark" format="color|reference" />-->
+        <attr name="colorPrimaryLight" format="color|reference" />
+        <!--<attr name="colorAccent" format="color|reference" />-->
+        <attr name="colorAccentDark" format="color|reference" />
+        <attr name="colorAccentLight" format="color|reference" />
+        <attr name="textColorPrimary" format="color|reference" />
+        <attr name="textColorSecondary" format="color|reference" />
+    </declare-styleable>
 </resources>

@@ -7,8 +7,11 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.Loader;
 import android.database.Cursor;
+import android.graphics.drawable.Drawable;
 import android.os.Bundle;
+import android.support.design.widget.CollapsingToolbarLayout;
 import android.support.v4.widget.SwipeRefreshLayout;
+import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.StaggeredGridLayoutManager;
@@ -20,12 +23,14 @@ import android.util.TypedValue;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.example.xyzreader.R;
 import com.example.xyzreader.data.ArticleLoader;
 import com.example.xyzreader.data.ItemsContract;
 import com.example.xyzreader.data.UpdaterService;
+import com.squareup.picasso.Picasso;
 
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -47,6 +52,7 @@ public class ArticleListActivity extends AppCompatActivity implements
     private Toolbar mToolbar;
     private SwipeRefreshLayout mSwipeRefreshLayout;
     private RecyclerView mRecyclerView;
+    private ImageView introImage;
 
     private SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.sss", Locale.US);
     private SimpleDateFormat outputFormat = new SimpleDateFormat(); // Use default locale format
@@ -70,11 +76,20 @@ public class ArticleListActivity extends AppCompatActivity implements
 
         //Initializations
         mToolbar = findViewById(R.id.toolbar);
-        final View toolbarContainerView = findViewById(R.id.toolbar_container);
-        mSwipeRefreshLayout = findViewById(R.id.swipe_refresh_layout);
+        //mSwipeRefreshLayout = findViewById(R.id.swipe_refresh_layout);
         mRecyclerView = findViewById(R.id.recycler_view);
+        introImage = findViewById(R.id.intro_image);
+
+        String pathString= "file:///android_asset/";
+        String image = "depositphotos_104566508-stock-photo-cup-of-coffee-open-book.jpg";
+        String imageUrl = pathString + image;
+        Picasso.with(getApplicationContext())
+                .load(imageUrl)
+                .error(R.drawable.ic_missing_image)
+                .into(introImage);
 
         getLoaderManager().initLoader(0, null, this);
+        setupCollapsingActionBarProperties();
 
         if (savedInstanceState == null) refresh();
     }
@@ -92,7 +107,21 @@ public class ArticleListActivity extends AppCompatActivity implements
         startService(new Intent(this, UpdaterService.class));
     }
     private void updateRefreshingUI() {
-        mSwipeRefreshLayout.setRefreshing(mIsRefreshing);
+        //mSwipeRefreshLayout.setRefreshing(mIsRefreshing);
+    }
+    private void setupCollapsingActionBarProperties() {
+        //Note: new settings in styles.xml/windowActionBar & windowNoTitle
+        CollapsingToolbarLayout collapsingToolbarLayout = findViewById(R.id.collapsing_toolbar);
+        collapsingToolbarLayout.setTitleEnabled(false);
+
+        Toolbar toolbar = findViewById(R.id.toolbar);
+        setSupportActionBar(toolbar);
+        ActionBar actionBar = getSupportActionBar();
+        if (actionBar!=null) {
+            actionBar.setDisplayHomeAsUpEnabled(false); //Hides back button
+            actionBar.setTitle(R.string.article_list_intro);
+        }
+
     }
 
     //Loader methods

@@ -16,10 +16,31 @@
 -->
 
 <resources>
+
+
+    <color name="teal_700">#00796b</color>
+    <color name="teal_700_dark">#004c40</color>
+    <color name="teal_700_light">#48a999</color>
+    <color name="teal_a100">#a7ffeb</color>
+    <color name="yellow_700">#fbc02d</color>
+    <color name="yellow_700_dark">#c49000</color>
+    <color name="yellow_700_light">#fff263</color>
+    <color name="yellow_a100">#ffff8d</color>
+
+    <color name="colorPrimary">@color/teal_700</color>
+    <color name="colorPrimaryDark">@color/teal_700_dark</color>
+    <color name="colorPrimaryLight">@color/teal_700_light</color>
+    <color name="colorAccent">@color/yellow_700</color>
+    <color name="colorAccentDark">@color/yellow_700_dark</color>
+    <color name="colorAccentLight">@color/yellow_700_light</color>
+
+    <color name="textColorPrimary">@color/teal_a100</color>
+    <color name="textColorSecondary">@color/yellow_a100</color>
+
     <color name="photo_placeholder">#ccc</color>
 
-    <color name="theme_primary">#04561A</color>
-    <color name="theme_primary_dark">#04561A</color>
-    <color name="theme_accent">#04561A</color>
-    <color name="ltgray">#ffe0e0e0</color>
+    <!--<color name="theme_primary">#04561A</color>-->
+    <!--<color name="theme_primary_dark">#04561A</color>-->
+    <!--<color name="theme_accent">#04561A</color>-->
+    <color name="light_gray">#ffe0e0e0</color>
 </resources>
