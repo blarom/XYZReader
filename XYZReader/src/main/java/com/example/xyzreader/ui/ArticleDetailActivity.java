@@ -1,6 +1,5 @@
 package com.example.xyzreader.ui;
 
-import android.annotation.TargetApi;
 import android.app.Fragment;
 import android.app.FragmentManager;
 import android.app.LoaderManager;
@@ -17,7 +16,6 @@ import android.support.v7.widget.Toolbar;
 import android.util.TypedValue;
 import android.view.View;
 import android.view.ViewGroup;
-import android.view.WindowInsets;
 
 import com.example.xyzreader.R;
 import com.example.xyzreader.data.ArticleLoader;
@@ -27,7 +25,7 @@ import com.example.xyzreader.data.ItemsContract;
  * An activity representing a single Article detail screen, letting you swipe between articles.
  */
 public class ArticleDetailActivity extends AppCompatActivity
-        implements LoaderManager.LoaderCallbacks<Cursor> {
+        implements LoaderManager.LoaderCallbacks<Cursor>, ArticleDetailFragment.ToolbarBehaviorHandler {
 
     //Locals & Statics
     private Cursor mCursor;
@@ -39,8 +37,8 @@ public class ArticleDetailActivity extends AppCompatActivity
 
     private ViewPager mPager;
     private MyPagerAdapter mPagerAdapter;
-    private View mUpButtonContainer;
-    private View mUpButton;
+    private Toolbar mToolbar;
+    private ActionBar mActionBar;
 
     //Lifecycle methods
     @Override protected void onCreate(Bundle savedInstanceState) {
@@ -55,10 +53,10 @@ public class ArticleDetailActivity extends AppCompatActivity
 
         //Initializations
         getLoaderManager().initLoader(0, null, this);
-        mUpButtonContainer = findViewById(R.id.up_container);
         mPager = findViewById(R.id.pager);
-        mUpButton = findViewById(R.id.action_up);
+        mToolbar = findViewById(R.id.detail_activity_toolbar);
         setupToolbarProperties();
+
         if (savedInstanceState == null) {
             if (getIntent() != null && getIntent().getData() != null) {
                 mStartId = ItemsContract.Items.getItemId(getIntent().getData());
@@ -75,9 +73,9 @@ public class ArticleDetailActivity extends AppCompatActivity
             @Override
             public void onPageScrollStateChanged(int state) {
                 super.onPageScrollStateChanged(state);
-                mUpButton.animate()
-                        .alpha((state == ViewPager.SCROLL_STATE_IDLE) ? 1f : 0f)
-                        .setDuration(300);
+////                mUpButton.animate()
+////                        .alpha((state == ViewPager.SCROLL_STATE_IDLE) ? 1f : 0f)
+////                        .setDuration(300);
             }
 
             @Override
@@ -86,54 +84,22 @@ public class ArticleDetailActivity extends AppCompatActivity
                     mCursor.moveToPosition(position);
                 }
                 mSelectedItemId = mCursor.getLong(ArticleLoader.Query._ID);
-                updateUpButtonPosition();
             }
         });
-
-        //Set button actions
-        mUpButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                onSupportNavigateUp();
-            }
-        });
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-            mUpButtonContainer.setOnApplyWindowInsetsListener(new View.OnApplyWindowInsetsListener() {
-                @Override
-                @TargetApi(Build.VERSION_CODES.LOLLIPOP)
-                public WindowInsets onApplyWindowInsets(View view, WindowInsets windowInsets) {
-                    view.onApplyWindowInsets(windowInsets);
-                    mTopInset = windowInsets.getSystemWindowInsetTop();
-                    mUpButtonContainer.setTranslationY(mTopInset);
-                    updateUpButtonPosition();
-                    return windowInsets;
-                }
-            });
-        }
 
     }
 
     //Functional methods
-    public void onUpButtonFloorChanged(long itemId, ArticleDetailFragment fragment) {
-        if (itemId == mSelectedItemId) {
-            mSelectedItemUpButtonFloor = fragment.getUpButtonFloor();
-            updateUpButtonPosition();
-        }
-    }
-    private void updateUpButtonPosition() {
-        int upButtonNormalBottom = mTopInset + mUpButton.getHeight();
-        mUpButton.setTranslationY(Math.min(mSelectedItemUpButtonFloor - upButtonNormalBottom, 0));
-    }
     private void setupToolbarProperties() {
-        Toolbar toolbar = findViewById(R.id.toolbar);
-        setSupportActionBar(toolbar);
-        ActionBar actionBar = getSupportActionBar();
-        if (actionBar!=null) {
-            actionBar.setDisplayHomeAsUpEnabled(true); //Shows back button
-            actionBar.setTitle(R.string.article);
+        setSupportActionBar(mToolbar);
+        mActionBar = getSupportActionBar();
+        if (mActionBar!=null) {
+            mActionBar.setDisplayHomeAsUpEnabled(true); //Shows back button
+            mActionBar.setDisplayShowHomeEnabled(true);
+            mActionBar.setTitle(R.string.article);
         }
-
     }
+
     //Loader methods
     @Override public Loader<Cursor> onCreateLoader(int i, Bundle bundle) {
         return ArticleLoader.newAllArticlesInstance(this);
@@ -172,10 +138,9 @@ public class ArticleDetailActivity extends AppCompatActivity
         public void setPrimaryItem(ViewGroup container, int position, Object object) {
             super.setPrimaryItem(container, position, object);
             ArticleDetailFragment fragment = (ArticleDetailFragment) object;
-            if (fragment != null) {
-                mSelectedItemUpButtonFloor = fragment.getUpButtonFloor();
-                updateUpButtonPosition();
-            }
+//            if (fragment != null) {
+//                mSelectedItemUpButtonFloor = fragment.getUpButtonFloor();
+//            }
         }
 
         @Override
@@ -187,6 +152,18 @@ public class ArticleDetailActivity extends AppCompatActivity
         @Override
         public int getCount() {
             return (mCursor != null) ? mCursor.getCount() : 0;
+        }
+    }
+
+    //Communication with other activities/fragments
+    @Override public void onToolbarCollapsed(String title) {
+        if (mActionBar!=null) {
+            mActionBar.setTitle(title);
+        }
+    }
+    @Override public void onToolbarExpanded() {
+        if (mActionBar!=null) {
+            mActionBar.setTitle(R.string.article);
         }
     }
 }

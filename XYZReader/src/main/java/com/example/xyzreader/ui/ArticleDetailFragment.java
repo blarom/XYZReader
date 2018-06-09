@@ -1,13 +1,15 @@
 package com.example.xyzreader.ui;
 
+import android.annotation.TargetApi;
+import android.app.Activity;
 import android.app.Fragment;
 import android.app.LoaderManager;
+import android.content.Context;
 import android.content.Intent;
 import android.content.Loader;
 import android.database.Cursor;
 import android.graphics.Bitmap;
 import android.graphics.Color;
-import android.graphics.Rect;
 import android.graphics.Typeface;
 import android.graphics.drawable.ColorDrawable;
 
@@ -18,6 +20,8 @@ import java.util.GregorianCalendar;
 import java.util.Locale;
 
 import android.os.Bundle;
+import android.support.design.widget.AppBarLayout;
+import android.support.design.widget.CoordinatorLayout;
 import android.support.v4.app.ShareCompat;
 import android.support.v7.graphics.Palette;
 import android.text.Html;
@@ -66,6 +70,7 @@ public class ArticleDetailFragment extends Fragment implements
     private SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.sss", Locale.US);
     private SimpleDateFormat outputFormat = new SimpleDateFormat(); // Use default locale format
     private GregorianCalendar START_OF_EPOCH = new GregorianCalendar(2,1,1); // Most time functions can only handle 1902 - 2037
+    private CoordinatorLayout mContainer;
 
     public ArticleDetailFragment() {
     }
@@ -94,28 +99,28 @@ public class ArticleDetailFragment extends Fragment implements
     }
     @Override public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         mRootView = inflater.inflate(R.layout.fragment_article_detail, container, false);
-        mDrawInsetsFrameLayout = (DrawInsetsFrameLayout)
-                mRootView.findViewById(R.id.draw_insets_frame_layout);
-        mDrawInsetsFrameLayout.setOnInsetsCallback(new DrawInsetsFrameLayout.OnInsetsCallback() {
-            @Override
-            public void onInsetsChanged(Rect insets) {
-                mTopInset = insets.top;
-            }
-        });
+        //mDrawInsetsFrameLayout = mRootView.findViewById(R.id.draw_insets_frame_layout);
+//        mDrawInsetsFrameLayout.setOnInsetsCallback(new DrawInsetsFrameLayout.OnInsetsCallback() {
+//            @Override
+//            public void onInsetsChanged(Rect insets) {
+//                mTopInset = insets.top;
+//            }
+//        });
 
-        mScrollView = (ObservableScrollView) mRootView.findViewById(R.id.scrollview);
-        mScrollView.setCallbacks(new ObservableScrollView.Callbacks() {
-            @Override
-            public void onScrollChanged() {
-                mScrollY = mScrollView.getScrollY();
-                getActivityCast().onUpButtonFloorChanged(mItemId, ArticleDetailFragment.this);
-                mPhotoContainerView.setTranslationY((int) (mScrollY - mScrollY / PARALLAX_FACTOR));
-                updateStatusBar();
-            }
-        });
+//        mScrollView = (ObservableScrollView) mRootView.findViewById(R.id.scrollview);
+//        mScrollView.setCallbacks(new ObservableScrollView.Callbacks() {
+//            @Override
+//            public void onScrollChanged() {
+//                mScrollY = mScrollView.getScrollY();
+//                getActivityCast().onUpButtonFloorChanged(mItemId, ArticleDetailFragment.this);
+//                mPhotoContainerView.setTranslationY((int) (mScrollY - mScrollY / PARALLAX_FACTOR));
+//                updateStatusBar();
+//            }
+//        });
 
         mPhotoView = (ImageView) mRootView.findViewById(R.id.photo);
-        mPhotoContainerView = mRootView.findViewById(R.id.photo_container);
+        //mPhotoContainerView = mRootView.findViewById(R.id.photo_container);
+
 
         mStatusBarColorDrawable = new ColorDrawable(0);
 
@@ -130,8 +135,17 @@ public class ArticleDetailFragment extends Fragment implements
         });
 
         bindViews();
+        setupToolbarBehavior();
         updateStatusBar();
         return mRootView;
+    }
+    @Override public void onAttach(Context context) {
+        super.onAttach(context);
+        mToolbarBehaviorHandler = (ToolbarBehaviorHandler) context;
+    }
+    @Override public void onAttach(Activity activity) {
+        super.onAttach(activity);
+        mToolbarBehaviorHandler = (ToolbarBehaviorHandler) activity;
     }
 
     //Functional methods
@@ -157,7 +171,7 @@ public class ArticleDetailFragment extends Fragment implements
                     (int) (Color.blue(mMutedColor) * 0.9));
         }
         mStatusBarColorDrawable.setColor(color);
-        mDrawInsetsFrameLayout.setInsetBackground(mStatusBarColorDrawable);
+        //mDrawInsetsFrameLayout.setInsetBackground(mStatusBarColorDrawable);
     }
     static float progress(float v, float min, float max) {
         return constrain((v - min) / (max - min), 0, 1);
@@ -246,15 +260,30 @@ public class ArticleDetailFragment extends Fragment implements
             bodyView.setText("N/A");
         }
     }
-    public int getUpButtonFloor() {
-        if (mPhotoContainerView == null || mPhotoView.getHeight() == 0) {
-            return Integer.MAX_VALUE;
-        }
+    private void setupToolbarBehavior() {
+        //inspired by: https://stackoverflow.com/questions/31662416/show-collapsingtoolbarlayout-title-only-when-collapsed/32528980?utm_medium=organic&utm_source=google_rich_qa&utm_campaign=google_rich_qa
 
-        // account for parallax
-        return mIsCard
-                ? (int) mPhotoContainerView.getTranslationY() + mPhotoView.getHeight() - mScrollY
-                : mPhotoView.getHeight() - mScrollY;
+        AppBarLayout appBarLayout = mRootView.findViewById(R.id.detail_appbar);
+        appBarLayout.addOnOffsetChangedListener(new AppBarLayout.OnOffsetChangedListener() {
+            boolean isShow = true;
+            int scrollRange = -1;
+
+            @Override
+            public void onOffsetChanged(AppBarLayout appBarLayout, int verticalOffset) {
+                if (scrollRange == -1) {
+                    scrollRange = appBarLayout.getTotalScrollRange();
+                }
+                if (scrollRange + verticalOffset == 0) {
+                    TextView articleTitle = mRootView.findViewById(R.id.article_title);
+                    if (mToolbarBehaviorHandler!=null) mToolbarBehaviorHandler.onToolbarCollapsed(articleTitle.getText().toString());
+                    isShow = true;
+                } else if(isShow) {
+                    if (mToolbarBehaviorHandler!=null) mToolbarBehaviorHandler.onToolbarExpanded();
+                    isShow = false;
+                }
+
+            }
+        });
     }
 
     //Loader methods
@@ -283,4 +312,10 @@ public class ArticleDetailFragment extends Fragment implements
         bindViews();
     }
 
+    //Communication with other activities/fragments
+    private ToolbarBehaviorHandler mToolbarBehaviorHandler;
+    public interface ToolbarBehaviorHandler {
+        void onToolbarCollapsed(String title);
+        void onToolbarExpanded();
+    }
 }

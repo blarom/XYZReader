@@ -1,13 +1,9 @@
 package com.example.xyzreader.ui;
 
 import android.app.LoaderManager;
-import android.content.BroadcastReceiver;
-import android.content.Context;
 import android.content.Intent;
-import android.content.IntentFilter;
 import android.content.Loader;
 import android.database.Cursor;
-import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.support.design.widget.CollapsingToolbarLayout;
 import android.support.v4.widget.SwipeRefreshLayout;
@@ -19,8 +15,6 @@ import android.support.v7.widget.Toolbar;
 import android.text.Html;
 import android.text.format.DateUtils;
 import android.util.Log;
-import android.util.TypedValue;
-import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
@@ -29,7 +23,6 @@ import android.widget.TextView;
 import com.example.xyzreader.R;
 import com.example.xyzreader.data.ArticleLoader;
 import com.example.xyzreader.data.ItemsContract;
-import com.example.xyzreader.data.UpdaterService;
 import com.squareup.picasso.Picasso;
 
 import java.text.ParseException;
@@ -49,25 +42,12 @@ public class ArticleListActivity extends AppCompatActivity implements
 
     //Locals & Statics
     private static final String TAG = ArticleListActivity.class.toString();
-    private Toolbar mToolbar;
     private SwipeRefreshLayout mSwipeRefreshLayout;
     private RecyclerView mRecyclerView;
-    private ImageView introImage;
 
     private SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.sss", Locale.US);
     private SimpleDateFormat outputFormat = new SimpleDateFormat(); // Use default locale format
     private GregorianCalendar START_OF_EPOCH = new GregorianCalendar(2,1,1); // Most time functions can only handle 1902 - 2037
-
-    private boolean mIsRefreshing = false;
-    private BroadcastReceiver mRefreshingReceiver = new BroadcastReceiver() {
-        @Override
-        public void onReceive(Context context, Intent intent) {
-            if (UpdaterService.BROADCAST_ACTION_STATE_CHANGE.equals(intent.getAction())) {
-                mIsRefreshing = intent.getBooleanExtra(UpdaterService.EXTRA_REFRESHING, false);
-                updateRefreshingUI();
-            }
-        }
-    };
 
     //Lifecycle methods
     @Override protected void onCreate(Bundle savedInstanceState) {
@@ -75,40 +55,21 @@ public class ArticleListActivity extends AppCompatActivity implements
         setContentView(R.layout.activity_article_list);
 
         //Initializations
-        mToolbar = findViewById(R.id.toolbar);
-        //mSwipeRefreshLayout = findViewById(R.id.swipe_refresh_layout);
+        mSwipeRefreshLayout = findViewById(R.id.swipe_refresh_layout);
         mRecyclerView = findViewById(R.id.recycler_view);
-        introImage = findViewById(R.id.intro_image);
+        mSwipeRefreshLayout.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
+            @Override
+            public void onRefresh() {
+                loadArticles();
+            }
+        });
 
-        String pathString= "file:///android_asset/";
-        String image = "depositphotos_104566508-stock-photo-cup-of-coffee-open-book.jpg";
-        String imageUrl = pathString + image;
-        Picasso.with(getApplicationContext())
-                .load(imageUrl)
-                .error(R.drawable.ic_missing_image)
-                .into(introImage);
-
-        getLoaderManager().initLoader(0, null, this);
+        setImage();
+        loadArticles();
         setupCollapsingActionBarProperties();
-
-        if (savedInstanceState == null) refresh();
-    }
-    @Override protected void onStart() {
-        super.onStart();
-        registerReceiver(mRefreshingReceiver, new IntentFilter(UpdaterService.BROADCAST_ACTION_STATE_CHANGE));
-    }
-    @Override protected void onStop() {
-        super.onStop();
-        unregisterReceiver(mRefreshingReceiver);
     }
 
     //Functional methods
-    private void refresh() {
-        startService(new Intent(this, UpdaterService.class));
-    }
-    private void updateRefreshingUI() {
-        //mSwipeRefreshLayout.setRefreshing(mIsRefreshing);
-    }
     private void setupCollapsingActionBarProperties() {
         //Note: new settings in styles.xml/windowActionBar & windowNoTitle
         CollapsingToolbarLayout collapsingToolbarLayout = findViewById(R.id.collapsing_toolbar);
@@ -121,7 +82,19 @@ public class ArticleListActivity extends AppCompatActivity implements
             actionBar.setDisplayHomeAsUpEnabled(false); //Hides back button
             actionBar.setTitle(R.string.article_list_intro);
         }
-
+    }
+    private void loadArticles() {
+        if (getLoaderManager()!=null) getLoaderManager().initLoader(0, null, this);
+    }
+    private void setImage() {
+        ImageView introImage = findViewById(R.id.intro_image);
+        String pathString= "file:///android_asset/";
+        String image = "depositphotos_104566508-stock-photo-cup-of-coffee-open-book.jpg";
+        String imageUrl = pathString + image;
+        Picasso.with(getApplicationContext())
+                .load(imageUrl)
+                .error(R.drawable.ic_missing_image)
+                .into(introImage);
     }
 
     //Loader methods
@@ -135,6 +108,7 @@ public class ArticleListActivity extends AppCompatActivity implements
         int columnCount = getResources().getInteger(R.integer.list_column_count);
         StaggeredGridLayoutManager sglm = new StaggeredGridLayoutManager(columnCount, StaggeredGridLayoutManager.VERTICAL);
         mRecyclerView.setLayoutManager(sglm);
+        mSwipeRefreshLayout.setRefreshing(false);
     }
     @Override public void onLoaderReset(Loader<Cursor> loader) {
         mRecyclerView.setAdapter(null);
