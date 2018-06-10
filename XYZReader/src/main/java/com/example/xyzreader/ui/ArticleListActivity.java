@@ -23,6 +23,7 @@ import android.widget.TextView;
 import com.example.xyzreader.R;
 import com.example.xyzreader.data.ArticleLoader;
 import com.example.xyzreader.data.ItemsContract;
+import com.example.xyzreader.data.UpdaterService;
 import com.squareup.picasso.Picasso;
 
 import java.text.ParseException;
@@ -67,6 +68,7 @@ public class ArticleListActivity extends AppCompatActivity implements
         setImage();
         loadArticles();
         setupCollapsingActionBarProperties();
+        if (savedInstanceState == null) refresh();
     }
 
     //Functional methods
@@ -97,6 +99,9 @@ public class ArticleListActivity extends AppCompatActivity implements
                 .load(imageUrl)
                 .error(R.drawable.ic_missing_image)
                 .into(introImage);
+    }
+    private void refresh() {
+        startService(new Intent(this, UpdaterService.class));
     }
 
     //Loader methods
