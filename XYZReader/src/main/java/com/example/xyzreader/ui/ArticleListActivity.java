@@ -84,7 +84,9 @@ public class ArticleListActivity extends AppCompatActivity implements
         }
     }
     private void loadArticles() {
-        if (getLoaderManager()!=null) getLoaderManager().initLoader(0, null, this);
+        getLoaderManager().initLoader(0, null, this);
+//        if (getLoaderManager() == null) getLoaderManager().initLoader(0, null, this);
+//        else getLoaderManager().restartLoader(0, null, this);
     }
     private void setImage() {
         ImageView introImage = findViewById(R.id.intro_image);
